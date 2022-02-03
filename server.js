@@ -27,3 +27,8 @@ app.get('/beauty', function(요청, 응답){
 app.get('/', function(요청, 응답){  // 슬러시(/) 하나만 쓰면 홈입니다.
     응답.sendFile(__dirname+ '/index.html');   // .sendFile(보낼파일경로)
 });
+
+// write.html
+app.get('/write', function(요청, 응답){  // 슬러시(/) 하나만 쓰면 홈입니다.
+    응답.sendFile(__dirname+ '/write.html');   // .sendFile(보낼파일경로)
+});

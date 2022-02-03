@@ -35,17 +35,19 @@
 
     <div class="todo_con" style="width:100%; overflow: hidden;">
         <div style="width:90%; margin:0 auto;">
-            <form>
+
+            <!-- form 태그 기능 개발 : POST(글쓰기) -->
+            <form action="/add" method="POST">  <!--form 태그에 꼭 있어야하는 2개의 속성-->
                 <div class="form-group">
                 <label for="formGroupExampleInput">할일</label>
-                <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Example input placeholder">
+                <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Example input placeholder" name="title">
                 </div>
                 <div class="form-group">
                 <label for="formGroupExampleInput2">Due date</label>
-                <input type="text" class="form-control" id="formGroupExampleInput2" placeholder="Another input placeholder">
+                <input type="text" class="form-control" id="formGroupExampleInput2" placeholder="Another input placeholder" name="date">
                 </div>
+                <button type="submit" class="btn btn-success">Success</button>
             </form>
-            <button type="button" class="btn btn-success">Success</button>
         </div>
     </div>
 

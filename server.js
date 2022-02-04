@@ -2,12 +2,17 @@
 const express = require('express');
 const app = express();
 app.use(express.urlencoded({extended: true}))
-
+    
+// DB 연결
+const MongoClient = require('mongodb').MongoClient;
+MongoClient.connect('mongodb+srv://admin:qwert12345@cluster0.ktms6.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',function(에러,client){
     // listen(서버띄울 포트번호, 띄운 후 실행할 코드)
-app.listen(8080, function(){
+    app.listen(8080, function(){
         // 8080 port에 서버 띄워주세요~
-    console.log('listening on 8080');
+        console.log('listening on 8080');
+    });
 });
+
 
 /**
  * /pet/home 으로 (GET 요청)방문하면 펫 상품을 보여줌

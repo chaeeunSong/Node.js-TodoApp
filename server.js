@@ -2,10 +2,20 @@
 const express = require('express');
 const app = express();
 app.use(express.urlencoded({extended: true}))
-    
+
+var db;
 // DB 연결
 const MongoClient = require('mongodb').MongoClient;
-MongoClient.connect('mongodb+srv://admin:qwert12345@cluster0.ktms6.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',function(에러,client){
+MongoClient.connect('mongodb+srv://admin:qwert12345@cluster0.ktms6.mongodb.net/todoapp?retryWrites=true&w=majority',function(에러,client){
+    // 연결되면 할일
+    if(에러){return console.log(에러)}  // 에러처리 : mongoDB 관련된 함수들 전부 콜백함수에서 에러처리가능
+
+    db = client.db('todoapp');  // todoapp이라는 db로 연결
+    db.collection('post').insertOne({이름 : 'John', 나이 : 20},function(에러,결과){
+                // post 라는 db 파일에 insertOne{자료}
+        console.log('저장완료');
+    });
+
     // listen(서버띄울 포트번호, 띄운 후 실행할 코드)
     app.listen(8080, function(){
         // 8080 port에 서버 띄워주세요~

@@ -115,11 +115,18 @@ app.post('/add',function(요청,응답){
 
 /**
  * /list로 GET요청으로 접속하면 실제 DB에 저장된 데이터들로 예쁘게 꾸며진 HTML을 보여줌
- *
  * 서버에서 .html 말고 .ejs 파일 보내주는 법
  * */
 
+// 주입식. 외워서쓰는거
 app.get('/list',function(요청,응답){
-    // 주입식. 외워서쓰는거
-    응답.render('list.ejs');
+    // 디비에 저장된 post라는 collection 안의 모든 데이터를 꺼내주세요
+    db.collection('post').find().toArray(function(에러,결과){   // post 문서의 모든데이터 출력해주세요~ 문법. 외워라
+        console.log(결과);
+        응답.render('list.ejs',{posts : 결과});
+        //꺼낸 데이터 EJS파일에 집어넣기
+        // 1. DB에서 자료 찾아주세요
+        // 2. 찾은걸 ejs 파일에 집어넣어주세요
+    });
+
 })

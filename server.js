@@ -103,15 +103,50 @@ app.get('/write', function(요청, 응답){  // 슬러시(/) 하나만 쓰면 �
  * 이 때, 'post'라는 이름을 가진 collection에 두개 데이터를 저장하기
  *
  */
+// DB에 글 저장하는 코드
+// app.post('/add',function(요청,응답){
+//     응답.send('전송완료');
+//     console.log(요청.body.title)
+//     console.log(요청.body.date)
+//     db.collection('post').insertOne({제목:요청.body.title, 날짜:요청.body.date},function(){
+//        console.log('저장완료');
+//     });
+// });
 
+/**
+ * DB에 글 저장하는 코드에 글번호를 달아서 저장하자
+ * (auto increment) DB에 항목 추가할 때마다 자동으로 1 증가시켜서 저장하는 그런거..
+ * 현재 총게시물갯수 + 1 이렇게 _id 부여해주면 될까?
+ * 저장되는 시점에 따라 혼선유발 가능 : 애초에 유니크한 id를 부여하자
+ * _id : 2 라고 영구적으로 지정
+ * 발행된 총 게시물 갯수를 기록하는 저장공간 (이 저장공간 DB 테이블을 새로 만들어야한다 = counter 테이블 새로 생성)
+ *
+ *
+ * 해당 소스코드 결과물 해석
+ * 사용자가 /add로 post 요청을하면 (폼전송하면)
+ * 디비중에 counter라는 이름을가진 파일을 찾아서 DB의 총게시물갯수 데이터 가져오셈
+ * 그게 완료되면 _id : 총게시물갯수 + 1 해서 새로운 데이터를 post 콜렉션에 저장해주세요
+ *
+ * */
+
+// 글번호 달아서 저장하는 코드
 app.post('/add',function(요청,응답){
     응답.send('전송완료');
-    console.log(요청.body.title)
-    console.log(요청.body.date)
-    db.collection('post').insertOne({제목:요청.body.title, 날짜:요청.body.date},function(){
-       console.log('저장완료');
+    // 총게시물갯수라는 데이터를 DB에서 꺼내와보자
+    // 나는 디비컬렉션의 테이블중 counter라는 테이블을 찾고싶어여 .find(); 는 테이블안의 데이터를 "전부다" 찾으려면 쓰는것이고 특정한것의 하나만 찾으려면 .findOne(); 함수사용
+                                    // 쿼리문: counter라는 collection에서 name : '게시물갯수' 인 데이터를 찾아주세요
+    db.collection('counter').findOne({name : '게시물갯수'}, function(에러, 결과){
+        console.log(결과.totalPost); // 여기서 결과란, findOne으로 가져온 데이터.. 실제로 데이터를 가져왔는지 확인해보자
+        var 총게시물갯수 = 결과.totalPost;  // 변수 글자색이 흐릿한 이유 : 선언하고 안쓰면 흐릿해짐. var로 만드는 변수는 재선언 가능, 재할당 가능, 생존범위는 function
+
+        // 데이터베이스에 이 사용자 게시물을 저장해주세요 이 세줄의 코드를 var 총게시물갯수 안으로 이동시켜야 작동
+        db.collection('post').insertOne({ _id : 총게시물갯수 + 1, 제목:요청.body.title, 날짜:요청.body.date},function(){
+            console.log('저장완료');
+        });
+
     });
 });
+
 
 /**
  * /list로 GET요청으로 접속하면 실제 DB에 저장된 데이터들로 예쁘게 꾸며진 HTML을 보여줌
@@ -128,5 +163,5 @@ app.get('/list',function(요청,응답){
         // 1. DB에서 자료 찾아주세요
         // 2. 찾은걸 ejs 파일에 집어넣어주세요
     });
-
 })
+

@@ -129,6 +129,20 @@ app.get('/write', function(요청, 응답){  // 슬러시(/) 하나만 쓰면 �
  *
  * */
 
+/***
+ * update함수 사용시 적용해야하는 operator
+ * $set (변경)
+ * $inc (증가)
+ * $min (기존값보다 적을 때만 변경)
+ * $rename (key값 이름변경)
+ * ... 등 10가지 정도 있음. 필요할때마다 꺼내서 쓰면됨.
+ *
+ * { $set : { totalPost : 바꿀값 }}
+ * { $inc : { totalPost : 기존값에 더해줄 값 }}
+ *
+ */
+
+
 // 글번호 달아서 저장하는 코드
 app.post('/add',function(요청,응답){
     응답.send('전송완료');
@@ -140,12 +154,43 @@ app.post('/add',function(요청,응답){
         var 총게시물갯수 = 결과.totalPost;  // 변수 글자색이 흐릿한 이유 : 선언하고 안쓰면 흐릿해짐. var로 만드는 변수는 재선언 가능, 재할당 가능, 생존범위는 function
 
         // 데이터베이스에 이 사용자 게시물을 저장해주세요 이 세줄의 코드를 var 총게시물갯수 안으로 이동시켜야 작동
-        db.collection('post').insertOne({ _id : 총게시물갯수 + 1, 제목:요청.body.title, 날짜:요청.body.date},function(){
+        db.collection('post').insertOne({ _id : 총게시물갯수 + 1, 제목:요청.body.title, 날짜:요청.body.date},function(에러,결과){
             console.log('저장완료');
+
+        // counter라는 콜렉션에 있는 totalPost 라는 항목도 1 증가시켜야함 (수정);
+        // 글을 발행해주는 코드 안에 작성하는게 좋음. 콜백함수는 순차적 실행을 위해 쓰기 때문에 문법적으로 맞음.
+        db.collection('counter').updateOne({name:'게시물갯수'},{ $inc : {totalPost:1}},function(에러,결과){    // .updateOne(이데이터를, 이렇게 수정해주셈) : DB데이터를 수정해주세요~
+                                                                // update류의 함수를 사용할때는 그냥쓰면 안됨. operator를 사용해야함.
+            // 콜백함수 순자적으로 실행. 위에 updateOne 함수를 실행시켜주고요 그다음 나를 실행시켜주세요
+            if(에러){return console.log(에러)}  // 에러검열 추천
         });
 
+        });
     });
 });
+
+/**
+ * 코드해석이 익숙하지않다면..
+ * 한글로 한 줄씩 적어가면서 코드를 해석하는게 남의 코드 해석하는 가장 좋은방법!
+ * */
+
+//
+// // 1. 누가 폼에서 /add 로 POST 요청하면 (요청.body에 게시물 데이터 담겨옴)
+// app.post('/add',function(요청,응답){
+//     응답.send('전송완료');
+//     db.collection('counter').findOne({name : '게시물갯수'}, function(에러, 결과){    // 2. DB.counter 내의 총게시물갯수를 찾음
+//         console.log(결과.totalPost);
+//         var 총게시물갯수 = 결과.totalPost;  // 3. 게시물갯수가 가지고있던것중에 totalPost 값을 변수에 저장. 여기까지가 총게시물갯수를 가지고와주세요~ 의 코드
+//
+//         db.collection('post').insertOne({ _id : 총게시물갯수 + 1, 제목:요청.body.title, 날짜:요청.body.date},function(){  //4. 이제 DB.post에 새게시물 기록함
+//             console.log('저장완료');
+//             db.collection('counter').updateOne({name:'게시물갯수'},{ $inc : {totalPost:1}},function(에러,결과){  // 5. 완료되면 DB.counter 내의 총게시물 갯수 +1
+//                 if(에러){return console.log(에러)}
+//             });
+//         });
+//     });
+// });
+//
 
 
 /**

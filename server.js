@@ -226,6 +226,6 @@ app.delete('/delete',function(요청,응답){
     //  3. 요청.body에 담긴 게시물 번호에 따라 DB에서 게시물 삭제
     db.collection('post').deleteOne(요청.body, function(에러,결과){
         console.log('삭제완료');
+        응답.status(200).send({ message: '성공했습니다' }); // 응답코드 200을 보내주세요 그리고 메세지도 보내주셈
     })
-    응답.send('삭제완료')
 });

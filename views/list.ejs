@@ -90,6 +90,8 @@
                  // e.target : 내가 누른 요소
                  // dataset.id : data-id
 
+        var 지금누른거 = $(this);    // this : 지금 이벤트 동작하는곳
+
         // 서버에 새로고침없이 /delete 경로로 DELETE 요청을 할거에요~ 123이라는 데이터도 같이 보낼꺼에요
         $.ajax({
             method : 'DELETE',
@@ -97,9 +99,14 @@
             data : {_id : 글번호}  // 요청보낼 때 삭제할 게시물 번호를 함께 전송
         }).done(function(결과){   // 요청이 성공하면 요걸 실행해주세요~
             // 삭제버튼을 누른 <li> 요소를 제거해주세요
+            alert('삭제되었습니다~!')
+            지금누른거.parent('li').fadeOut();
 
-        })
-
+        }).fail(function(xhr, textStatus, errorThrown){     // 실패시 실행
+            console.log(xhr, textStatus, errorThrown);
+            // textStatus : 응답코드 출력. 왜실패했는지
+            // errorThrown : 에러메세지 출럭
+        });
     });
 
 </script>

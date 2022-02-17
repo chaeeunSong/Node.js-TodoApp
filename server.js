@@ -214,12 +214,18 @@ app.get('/list',function(요청,응답){
  * 글 목록마다 삭제버튼 만들기
  * ajax로 DELETE 요청 하면, 서버는 /delete 경로로 DELETE 요청 처리하는 코드 작성해놓으면 되겠네
  *
+ * db.collection('post').deleteOne({어떤항목을삭제할지넣는곳},function(){})
+ *
  * */
 
 // 첫줄해석 : /delete라는 경로로 DELETE요청이 왔을때 콜백함수를 실행시켜주세요
 app.delete('/delete',function(요청,응답){
-   console.log(요청.body) // 2. 요청시 함께 보낸 데이터를 찾으려면 요로케(게시물 번호)
+    console.log(요청.body); // 2. 요청시 함께 보낸 데이터를 찾으려면 요로케(게시물 번호)
+    요청.body._id = parseInt(요청.body._id);  // 요청.body sodml _id를 숫자로 변환시키자. Object자료 다루기 스킬..
 
     //  3. 요청.body에 담긴 게시물 번호에 따라 DB에서 게시물 삭제
-
+    db.collection('post').deleteOne(요청.body, function(에러,결과){
+        console.log('삭제완료');
+    })
+    응답.send('삭제완료')
 });

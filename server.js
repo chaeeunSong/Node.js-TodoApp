@@ -229,3 +229,27 @@ app.delete('/delete',function(요청,응답){
         응답.status(200).send({ message: '성공했습니다' }); // 응답코드 200을 보내주세요 그리고 메세지도 보내주셈
     })
 });
+
+
+/**
+ * parameter로 요청가능한 URL 백개 만들기
+ * /detail 로 접속하면 detail.ejs 보여줌
+ *
+ * 혼자서 해볼것들
+ * 1. 없는 게시물은 어떻게 처리할까?
+ * 2. 글목록 페이지에서 글제목 누르면 상세페이지로 이동시키기
+ * - list.ejs 에 a태그 추가하여 처리
+ * */
+
+// 1. 어떤사람이 detail/i 로 접속하면
+app.get('/detail/:id',function(요청,응답){
+                                // (url 파라미터 중 :id 라는 뜻) 2. DB에서 {_id : i}인 게시물을 찾음
+    db.collection('post').findOne({_id : parseInt(요청.params.id)}, function(에러,결과){
+        console.log(결과);
+        응답.render('detail.ejs', { data : 결과 });   // 3. 찾은 결과를 detail.ejs 로 보냄
+    });
+});
+
+/**
+
+ * */

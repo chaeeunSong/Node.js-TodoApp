@@ -44,12 +44,13 @@
 
 <ul class="list-group">
     <% for(var i = 0; i<posts.length; i++){ %>
-    <li class="list-group-item">
-      <p>글번호 : <%= posts[i]._id %></p>
-      <h4>할일 제목 : <%= posts[i].제목 %></h4>
-      <p>할일 마감 날짜 : <%= posts[i].날짜 %></p>
-      <button class="btn btn-danger" data-id="<%= posts[i]._id %>">삭제하기</button>
-    </li>
+        <li class="list-group-item">
+          <p>글번호 : <%= posts[i]._id %></p>
+          <h4>할일 제목 : <%= posts[i].제목 %></h4>
+          <p>할일 마감 날짜 : <%= posts[i].날짜 %></p>
+          <a href="/detail/<%= posts[i]._id %>"><button class="btn btn-success" data-id="<%= posts[i]._id %>">상세보기</button></a>
+          <button class="btn btn-danger" data-id="<%= posts[i]._id %>">삭제하기</button>
+        </li>
     <% } %>
 </ul>
 

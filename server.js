@@ -3,6 +3,8 @@ const express = require('express');
 const app = express();
 app.use(express.urlencoded({extended: true}))
 const MongoClient = require('mongodb').MongoClient;
+const methodOverride = require('method-override');  // method-override 라이브러리 설치
+app.use(methodOverride('_method'));
 app.set('view engine', 'ejs');  // ejs 패키지 설치
 
 var db;
@@ -251,5 +253,23 @@ app.get('/detail/:id',function(요청,응답){
 });
 
 /**
-
+ * edit.ejs 만들자
+ * - write 페이지와 유사함
+ * - 입력했던 제목, 날짜가 이미 채워짐
+ * - 전송누르면 edit 기능을 함 (솔직히 혼자 가능 - mongoDB에서 update하는 함수 구글링으로 찾으면 쉽게 나옴)
+ * 
+ * 게시글마다 각각 다른 edit.ejs 내용이 필요함
+ * -/edit/:id 로 라우팅하기 (url 파라미터사용)
+ *
+ * html에 PUT 요청 가능하게할 method-override 라이브러리 설치
+ *
  * */
+
+
+app.get('/edit/:id',function(요청,응답){
+    // /edit/2 로 접속하면 2번 게시물 제목, 날짜를 edit.ejs로 보냄
+    db.collection('post').findOne({_id : parseInt(요청.params.id)}, function(에러,결과){
+        console.log(결과)
+        응답.render('edit.ejs', {post : 결과})
+    });
+});

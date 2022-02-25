@@ -265,11 +265,35 @@ app.get('/detail/:id',function(요청,응답){
  *
  * */
 
-
 app.get('/edit/:id',function(요청,응답){
     // /edit/2 로 접속하면 2번 게시물 제목, 날짜를 edit.ejs로 보냄
     db.collection('post').findOne({_id : parseInt(요청.params.id)}, function(에러,결과){
         console.log(결과)
         응답.render('edit.ejs', {post : 결과})
     });
+});
+
+/**
+ * 폼에서 전송한 제목, 날짜로 db.collection('post')에서 게시물 찾아서 업데이트
+ * updateOne(어떤게시물수정할건지,수정값,콜백함수)
+ * $set : 업데이트 해주세요(없으면 추가해주시고요)
+ *
+ * 폼에서 전송한 제목, 날짜로 db.collection('post')에서 _id:?? 게시물 찾아서 업데이트
+ * edit.ejs에서 수정할 제목, 날짜는 보내는데 무슨 _id의 게시물을 바꿀지 안보내는중
+ * html 폼 전송시 _id : ?? 정보도 함께 보내기
+ * 1. 몰래 input을 만들고 value에 정보를 넣음
+ * 2. name 쓰기
+ *
+ * 
+ * */
+
+app.put('/edit',function(요청,응답){
+    // 폼에 담긴 제목데이터, 날짜데이터를 가지고
+    // db.collection 에다가 업데이트함
+    db.collection('post').updateOne({_id : parseInt(요청.body.id) },{$set: {제목:요청.body.title, 날짜:요청.body.date}},function(에러,결과){
+                                    // 인풋의 id가 이것인 데이터를 찾아서 수정해주셈
+        console.log('수정완료');
+        응답.redirect('/list')
+    });
+
 });

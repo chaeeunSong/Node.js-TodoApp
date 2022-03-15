@@ -297,3 +297,89 @@ app.put('/edit',function(요청,응답){
     });
 
 });
+
+
+/**
+ * Session 방식 로그인 기능 구현하기
+ *
+ * 준비 1. npm install passport passport-local express-session
+ * 준비 2. server.js에 라이브러리 첨부
+ * app.use (미들웨어)
+ * 웹서버는 요청 - 응답해주는 머신으로 미들웨어 : 요청 - 응답 중간에 뭔가 실행되는 코드
+ * 비밀코드 : 비밀번호
+ * 
+ * */
+
+const passport =require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const session = require('express-session');
+
+app.use(session({secret : '비밀코드', resave : true, saveUninitialized: false}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+/**
+ * 1. 로그인 페이지 제작 & 라우팅
+ * 1)login.ejs (로그인 페이지) 제작
+ * 2)회원가입은 일단 패스.. DB에 직접 아이디/비번 한쌍을 만들자
+ * - login 이라는 collection 생성 (여기에 아이디/비번 저장할 것임)
+ * - DB collection login 에 테스트 id,pw 데이터를 하나 강제로 insert
+ * 
+ * 2. 로그인을 하면... 아이디 비번 검사
+ * - passport 라이브러리 사용
+ *
+ * 3. 아이디 비번 인증하는 세부 코드 작성
+ * - passport.use(new LocalStrategy());
+ *
+ * 4. 아이디/비번 맞는지 DB와 비교
+ * - 비교 후 아이디/비번 맞으면 세션을 하나 만들어줘야 할 듯
+ * - 로그인 성공 -> 세션정보를 만듦 -> 마이페이지 방문 시 세션검사
+ *
+ * 5. 세션만들기
+ *
+ *
+ * */
+
+app.get('/login',function(요청,응답){
+    응답.render('login.ejs');
+});
+                        // passport 라이브러리 : local 방식으로 회원인지 인증해주세요~
+app.post('/login', passport.authenticate('local',{
+    failureRedirect : '/fail'   // 회원 인증 실패하면 /fail 로 이동해주세요~
+}),function(요청,응답){
+    // 서버는 로그인 요청 시 아이디 비번 맞으면 로그인 성공페이지로 보내줘야 함
+    응답.redirect('/');   // 회원 인증 성공하고 그러면 redirect
+});
+
+// 인증하는 방법을 Strategy 라고 칭함
+passport.use(new LocalStrategy({
+    usernameField: 'id',    //  유저가 입력한 아이디/비번 항목이 뭔지 정의 (name속성 - login.ejs form의 name=id 인것)
+    passwordField: 'pw',
+    session: true,  // 로그인 후 세션을 저장할것인지
+    passReqToCallback: false,   // 아이비,비번 말고도 다른 정보 검증시 사용
+}, function (입력한아이디, 입력한비번, done) {     // 여기서부터가 중요! 핵심!
+    //console.log(입력한아이디, 입력한비번);
+    db.collection('login').findOne({ id: 입력한아이디 }, function (에러, 결과) {  // DB에 입력한 아이디가 있는지 찾기
+        if (에러) return done(에러)     // 흔한 에러처리 문법
+
+        if (!결과) return done(null, false, { message: '존재하지않는 아이디요' })   // DB에 아이디가 없으면
+        if (입력한비번 == 결과.pw) {   // DB에 아이디가 있으면, 입력한비번과 결과.pw 비교
+            return done(null, 결과)   // done(서버에러, 성공 시 사용자 DB 데이터, 에러메세지)
+        } else {
+            return done(null, false, { message: '비번틀렸어요' })
+        }
+    })
+}));
+
+
+// id를 이용해서 세션을 저장시키는 코드(로그인 성공 시 발동)
+passport.serializeUser(function(user, done){
+    done(null, user.id);    // 세션 데이터를 만들고 세션의 id 정보를 쿠키로 보냄
+});
+
+// 나중에 쓸거임(마이페이지 접속 시 발동)
+// 얘는 어떤사람인지 해석해주는 코드 (이 세션 데이터를 가진 사람을 DB 에서 찾아주세요)
+passport.deserializeUser(function(아이디, done){
+   done(null, {})
+});

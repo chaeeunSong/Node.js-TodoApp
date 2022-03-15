@@ -337,8 +337,6 @@ app.use(passport.session());
  * - 로그인 성공 -> 세션정보를 만듦 -> 마이페이지 방문 시 세션검사
  *
  * 5. 세션만들기
- *
- *
  * */
 
 app.get('/login',function(요청,응답){
@@ -351,6 +349,30 @@ app.post('/login', passport.authenticate('local',{
     // 서버는 로그인 요청 시 아이디 비번 맞으면 로그인 성공페이지로 보내줘야 함
     응답.redirect('/');   // 회원 인증 성공하고 그러면 redirect
 });
+
+/**
+ * 마이페이지 만들기 (EJS와 라우팅)
+ * 1. mypage.ejs 파일 작성
+ * 2. 마이페이지 접속 전 실행할 미들웨어 만들기
+ *
+ * deserializeUser()
+ * 로그인한 유저의 세션아아디를 바탕으로 개인정보를 DB에서 찾는 역할
+ * */
+
+app.get('/mypage',로그인했니,function(요청,응답){
+    console.log(요청.user);
+    응답.render('mypage.ejs', {사용자 : 요청.user})    // deserializeUser() 에서 찾은 유저정보를 mypage.ejs 에 보냄
+});
+
+// 미들웨어 만드는 법
+function 로그인했니(요청, 응답, next){   // 요청.user가 있는지 검사해주는 함수
+    if(요청.user){    // 요청.user가 있으면 next() 통과~ 로그인 후 세션이 있으면 요청.user가 항상 있음
+        next()
+    }else {     // 요청.user가 없으면 경고메세지 응답
+        응답.send('로그인안하셨는데요?');
+    }
+}
+
 
 // 인증하는 방법을 Strategy 라고 칭함
 passport.use(new LocalStrategy({
@@ -378,8 +400,11 @@ passport.serializeUser(function(user, done){
     done(null, user.id);    // 세션 데이터를 만들고 세션의 id 정보를 쿠키로 보냄
 });
 
-// 나중에 쓸거임(마이페이지 접속 시 발동)
-// 얘는 어떤사람인지 해석해주는 코드 (이 세션 데이터를 가진 사람을 DB 에서 찾아주세요)
+// 로그인 한 유저의 개인정보를 DB 에서 찾는 역활하는 함수
+// deserializeUser() : 로그인한 유저의 세션아이드를 바탕으로 개인정보를 DB 에서 찾는 역할
 passport.deserializeUser(function(아이디, done){
-   done(null, {})
+    // 디비에서 위에있던 user.id 로 유저를 찾은 뒤에 유저 정보를 넣음
+    db.collection('login').findOne({id : 아이디}, function(에러, 결과){
+        done(null, 결과)  // 마이페이지 접속 시 DB 에서 {id : 어쩌구} 인걸 찾아서 그 결과를 보내줌
+    });
 });

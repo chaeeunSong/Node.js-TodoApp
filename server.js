@@ -413,12 +413,26 @@ passport.deserializeUser(function(아이디, done){
 // 서버에서 query string 꺼내는 법
 app.get('/search', (요청, 응답) => {
     console.log(요청.query.value);  // query string이 다 담겨있음. (요청)은 요청한 유저의 정보가 다 담겨있는것.
+
     // 요청을 받으면 '이닦기' 라는 제목을 가진 게시물을 DB 에서 찾아서 보내줌.
-    db.collection('post').find({제목:요청.query.value}).toArray((에러, 결과) => {
-                            // ^ 완벽히 일치하는것만 찾아줌
+    var 검색조건 = [
+        {
+            $search: {
+                index: 'titleSearch',  // 님이만든인덱스명
+                text: {
+                    query: 요청.query.value,
+                    path: ['제목', '날짜']  // 제목날짜 둘다 찾고 싶으면 ['제목', '날짜']
+                }
+            }
+        },
+        { $project : { 제목: 1, _id: 0, score: { $meta: "searchScore" } } }   // 여러가지 검색용 연산자 추가 가능
+    ]
+    db.collection('post').aggregate(검색조건).toArray((에러, 결과) => {
+                            // ^ Search index 에서 검색하는 법
         console.log(결과)
 
         // 오늘의 숙제 : 알아서 검색결과 페이지 만들어오셈. 그 페이지 안에는 DB 에서 찾은 게시물이 보여야함.
         응답.render('search.ejs', {posts:결과});
+                                            // ^ 뭔가 보이려면 ejs 파일에 데이터를 보내야 함 (중요!)
     })
 })

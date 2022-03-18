@@ -131,45 +131,6 @@ app.get('/write', function(요청, 응답){  // 슬러시(/) 하나만 쓰면 �
  *
  * */
 
-/***
- * update함수 사용시 적용해야하는 operator
- * $set (변경)
- * $inc (증가)
- * $min (기존값보다 적을 때만 변경)
- * $rename (key값 이름변경)
- * ... 등 10가지 정도 있음. 필요할때마다 꺼내서 쓰면됨.
- *
- * { $set : { totalPost : 바꿀값 }}
- * { $inc : { totalPost : 기존값에 더해줄 값 }}
- *
- */
-
-
-// 글번호 달아서 저장하는 코드
-app.post('/add',function(요청,응답){
-    응답.send('전송완료');
-    // 총게시물갯수라는 데이터를 DB에서 꺼내와보자
-    // 나는 디비컬렉션의 테이블중 counter라는 테이블을 찾고싶어여 .find(); 는 테이블안의 데이터를 "전부다" 찾으려면 쓰는것이고 특정한것의 하나만 찾으려면 .findOne(); 함수사용
-                                    // 쿼리문: counter라는 collection에서 name : '게시물갯수' 인 데이터를 찾아주세요
-    db.collection('counter').findOne({name : '게시물갯수'}, function(에러, 결과){
-        console.log(결과.totalPost); // 여기서 결과란, findOne으로 가져온 데이터.. 실제로 데이터를 가져왔는지 확인해보자
-        var 총게시물갯수 = 결과.totalPost;  // 변수 글자색이 흐릿한 이유 : 선언하고 안쓰면 흐릿해짐. var로 만드는 변수는 재선언 가능, 재할당 가능, 생존범위는 function
-
-        // 데이터베이스에 이 사용자 게시물을 저장해주세요 이 세줄의 코드를 var 총게시물갯수 안으로 이동시켜야 작동
-        db.collection('post').insertOne({ _id : 총게시물갯수 + 1, 제목:요청.body.title, 날짜:요청.body.date},function(에러,결과){
-            console.log('저장완료');
-
-        // counter라는 콜렉션에 있는 totalPost 라는 항목도 1 증가시켜야함 (수정);
-        // 글을 발행해주는 코드 안에 작성하는게 좋음. 콜백함수는 순차적 실행을 위해 쓰기 때문에 문법적으로 맞음.
-        db.collection('counter').updateOne({name:'게시물갯수'},{ $inc : {totalPost:1}},function(에러,결과){    // .updateOne(이데이터를, 이렇게 수정해주셈) : DB데이터를 수정해주세요~
-                                                                // update류의 함수를 사용할때는 그냥쓰면 안됨. operator를 사용해야함.
-            // 콜백함수 순자적으로 실행. 위에 updateOne 함수를 실행시켜주고요 그다음 나를 실행시켜주세요
-            if(에러){return console.log(에러)}  // 에러검열 추천
-        });
-
-        });
-    });
-});
 
 /**
  * 코드해석이 익숙하지않다면..
@@ -211,26 +172,6 @@ app.get('/list',function(요청,응답){
         // 2. 찾은걸 ejs 파일에 집어넣어주세요
     });
 })
-
-/**
- * 글 목록마다 삭제버튼 만들기
- * ajax로 DELETE 요청 하면, 서버는 /delete 경로로 DELETE 요청 처리하는 코드 작성해놓으면 되겠네
- *
- * db.collection('post').deleteOne({어떤항목을삭제할지넣는곳},function(){})
- *
- * */
-
-// 첫줄해석 : /delete라는 경로로 DELETE요청이 왔을때 콜백함수를 실행시켜주세요
-app.delete('/delete',function(요청,응답){
-    console.log(요청.body); // 2. 요청시 함께 보낸 데이터를 찾으려면 요로케(게시물 번호)
-    요청.body._id = parseInt(요청.body._id);  // 요청.body sodml _id를 숫자로 변환시키자. Object자료 다루기 스킬..
-
-    //  3. 요청.body에 담긴 게시물 번호에 따라 DB에서 게시물 삭제
-    db.collection('post').deleteOne(요청.body, function(에러,결과){
-        console.log('삭제완료');
-        응답.status(200).send({ message: '성공했습니다' }); // 응답코드 200을 보내주세요 그리고 메세지도 보내주셈
-    })
-});
 
 
 /**
@@ -408,6 +349,79 @@ passport.deserializeUser(function(아이디, done){
         done(null, 결과)  // 마이페이지 접속 시 DB 에서 {id : 어쩌구} 인걸 찾아서 그 결과를 보내줌
     });
 });
+
+// 회원가입 기능이 필요하면 passport 셋팅하는 부분이 위에 있어야 함
+app.post('/register',function(요청,응답){
+    db.collection('login').insertOne( {id : 요청.body.id, pw : 요청.body.pw} ),function(에러,결과){
+        응답.redirect('/');
+    }
+});
+
+/***
+ * update함수 사용시 적용해야하는 operator
+ * $set (변경)
+ * $inc (증가)
+ * $min (기존값보다 적을 때만 변경)
+ * $rename (key값 이름변경)
+ * ... 등 10가지 정도 있음. 필요할때마다 꺼내서 쓰면됨.
+ *
+ * { $set : { totalPost : 바꿀값 }}
+ * { $inc : { totalPost : 기존값에 더해줄 값 }}
+ *
+ */
+
+// 글번호 달아서 저장하는 코드, 로그인 사용자만 사용 가능하게 소스코드 수정
+app.post('/add',function(요청,응답){
+    응답.send('전송완료');
+    // 총게시물갯수라는 데이터를 DB에서 꺼내와보자
+    // 나는 디비컬렉션의 테이블중 counter라는 테이블을 찾고싶어여 .find(); 는 테이블안의 데이터를 "전부다" 찾으려면 쓰는것이고 특정한것의 하나만 찾으려면 .findOne(); 함수사용
+    // 쿼리문: counter라는 collection에서 name : '게시물갯수' 인 데이터를 찾아주세요
+    db.collection('counter').findOne({name : '게시물갯수'}, function(에러, 결과){
+        console.log(결과.totalPost); // 여기서 결과란, findOne으로 가져온 데이터.. 실제로 데이터를 가져왔는지 확인해보자
+        var 총게시물갯수 = 결과.totalPost;  // 변수 글자색이 흐릿한 이유 : 선언하고 안쓰면 흐릿해짐. var로 만드는 변수는 재선언 가능, 재할당 가능, 생존범위는 function
+
+        var 저장할거 = { _id: 총게시물갯수 + 1, 작성자: 요청.user._id, 제목: 요청.body.title, 날짜: 요청.body.date}
+
+        // 데이터베이스에 이 사용자 게시물을 저장해주세요 이 세줄의 코드를 var 총게시물갯수 안으로 이동시켜야 작동
+        db.collection('post').insertOne(저장할거,function(에러,결과){
+            console.log('저장완료');
+
+            // counter라는 콜렉션에 있는 totalPost 라는 항목도 1 증가시켜야함 (수정);
+            // 글을 발행해주는 코드 안에 작성하는게 좋음. 콜백함수는 순차적 실행을 위해 쓰기 때문에 문법적으로 맞음.
+            db.collection('counter').updateOne({name:'게시물갯수'},{ $inc : {totalPost:1}},function(에러,결과){    // .updateOne(이데이터를, 이렇게 수정해주셈) : DB데이터를 수정해주세요~
+                // update류의 함수를 사용할때는 그냥쓰면 안됨. operator를 사용해야함.
+                // 콜백함수 순자적으로 실행. 위에 updateOne 함수를 실행시켜주고요 그다음 나를 실행시켜주세요
+                if(에러){return console.log(에러)}  // 에러검열 추천
+            });
+
+        });
+    });
+});
+
+/**
+ * 글 목록마다 삭제버튼 만들기
+ * ajax로 DELETE 요청 하면, 서버는 /delete 경로로 DELETE 요청 처리하는 코드 작성해놓으면 되겠네
+ *
+ * db.collection('post').deleteOne({어떤항목을삭제할지넣는곳},function(){})
+ *
+ * */
+
+// 첫줄해석 : /delete라는 경로로 DELETE요청이 왔을때 콜백함수를 실행시켜주세요
+app.delete('/delete',function(요청,응답){
+    console.log(요청.body); // 2. 요청시 함께 보낸 데이터를 찾으려면 요로케(게시물 번호)
+    요청.body._id = parseInt(요청.body._id);  // 요청.body sodml _id를 숫자로 변환시키자. Object자료 다루기 스킬..
+
+    // 실제 로그인 중 인 유저의 _id 와 글에 저장된 유전의 _id가 일치하면 삭제해주셈
+    var 삭제할데이터 = {_id:요청.body._id,작성자:요청.user._id }
+
+    //  3. 요청.body에 담긴 게시물 번호에 따라 DB에서 게시물 삭제
+    db.collection('post').deleteOne(삭제할데이터, function(에러,결과){
+        console.log('삭제완료');
+        if (에러){console.log(에러)}
+        응답.status(200).send({ message: '성공했습니다' }); // 응답코드 200을 보내주세요 그리고 메세지도 보내주셈
+    })
+});
+
 
 
 // 서버에서 query string 꺼내는 법

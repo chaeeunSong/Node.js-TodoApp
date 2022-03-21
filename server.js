@@ -450,3 +450,8 @@ app.get('/search', (요청, 응답) => {
                                             // ^ 뭔가 보이려면 ejs 파일에 데이터를 보내야 함 (중요!)
     })
 })
+
+
+// shop.js 파일을 여기에 첨부하겠습니다.
+app.use('/shop', require('./routes/shop.js'));
+app.use('/board/sub', require('./routes/board.js'));

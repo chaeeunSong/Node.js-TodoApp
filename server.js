@@ -455,3 +455,55 @@ app.get('/search', (요청, 응답) => {
 // shop.js 파일을 여기에 첨부하겠습니다.
 app.use('/shop', require('./routes/shop.js'));
 app.use('/board/sub', require('./routes/board.js'));
+
+
+
+
+
+/**
+ * 이미지 업로드 & 이미지 서버만들기
+ *
+ * 업로드한 이미지 저장하는 법
+ * - 보통 작업폴더안에 저장시킴 (일반 하드에 저장하는게 싸고 편함)
+ * - npm install multer
+ * - multer 라이브러리를 이용한 이미지 하드에 저장하기
+ *
+ * Q1. 파일을 여러개 전송하고싶다면?
+ * - upload.array('프로필', 10(최대로저장가능한개수))
+ *
+ * Q2. 파일명을 다이나믹하게?
+ * - cb(null, file.originalname + '날짜' + new Date() )
+ *
+ * Q3. 파일 형식(확장자) 거르기
+ * filefilter : function(){}
+ *
+ * */
+
+// 똑같이 치면 public/image 폴더 안에 이미지가 저장된다.
+let multer = require('multer');
+var storage = multer.diskStorage({
+    destination: function(req, file, cb){
+        cb(null, './public/image')  // 파일을 어디로 보낼지 폴더경로 설정하는 부분
+    },
+    filename: function(req, file, cb){
+        cb(null, file.originalname) // 저장한 이미지의 파일명 설정하는 부분
+    },
+    filefilter : function(req, file, cb){
+        
+    }
+})
+
+var upload = multer({storage : storage});
+
+app.get('/upload', function(요청,응답){
+    응답.render('upload.ejs');
+});
+
+app.post('/upload', upload.single('프로필'), function(요청,응답){
+    응답.send('업로드완료')
+});
+
+// 업로드한 이미지 보여주기 (누군가 /어쩌구로 접속하면 어쩌구.jpg 보내줌)
+app.get('/image/:imageName', function(요청,응답){
+    응답.sendFile(__dirname + '/public/image/' + 요청.params.imageName)
+})
